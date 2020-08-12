@@ -1,0 +1,66 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  aws-sam-dynamodb-api
+
+  Sample SAM Template for aws-sam-dynamodp-api
+
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+Globals:
+  Function:
+    Runtime: python3.8
+    Environment:
+      Variables:
+        TABLE_NAME:
+          Ref: SkillsTable    
+
+Resources:
+  ApiResource:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: Prod
+
+  DynamoDbFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: dynamodb/
+      Handler: app.lambda_handler
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref SkillsTable
+      Events:
+        DynamoDb:
+          Type: Api
+          Properties:
+            Path: /Skills/{userid}/{rating}
+            Method: get
+            RestApiId: !Ref ApiResource
+
+  SkillsTable:
+    Type: 'AWS::DynamoDB::Table'
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: userid
+          AttributeType: S
+        - AttributeName: rating
+          AttributeType: N
+      KeySchema:
+        - AttributeName: userid
+          KeyType: HASH
+        - AttributeName: rating
+          KeyType: RANGE
+      TableName: Skills
+
+Outputs:
+  # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
+  # Find out more about other implicit resources you can reference within SAM
+  # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
+  DynamoDbApi:
+    Description: "API Gateway endpoint URL for Prod stage for Hello World function"
+    Value: !Sub "https://${ApiResource}.execute-api.${AWS::Region}.amazonaws.com/Prod/Skills/"
+  DynamoDbFunction:
+    Description: "Hello World Lambda Function ARN"
+    Value: !GetAtt DynamoDbFunction.Arn
+  DynamoDbFunctionIamRole:
+    Description: "Implicit IAM Role created for Hello World function"
+    Value: !GetAtt DynamoDbFunctionRole.Arn

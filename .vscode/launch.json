@@ -1,0 +1,18 @@
+{
+  "configurations": [
+    {
+      "type": "aws-sam",
+      "request": "direct-invoke",
+      "name": "aws-sam-dynamodb-api:DynamoDbFunction",
+      "invokeTarget": {
+        "target": "template",
+        "templatePath": "template.yaml",
+        "logicalId": "DynamoDbFunction"
+      },
+      "lambda": {
+        "payload": {},
+        "environmentVariables": {}
+      }
+    }
+  ]
+}
