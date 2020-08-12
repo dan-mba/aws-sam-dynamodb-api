@@ -3,7 +3,7 @@ Transform: AWS::Serverless-2016-10-31
 Description: >
   aws-sam-dynamodb-api
 
-  Sample SAM Template for aws-sam-dynamodp-api
+  SAM Template for Skills API
 
 # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
 Globals:
@@ -32,7 +32,7 @@ Resources:
         DynamoDb:
           Type: Api
           Properties:
-            Path: /Skills/{userid}/{rating}
+            Path: /Skills/{userid}
             Method: get
             RestApiId: !Ref ApiResource
 
@@ -42,13 +42,9 @@ Resources:
       AttributeDefinitions:
         - AttributeName: userid
           AttributeType: S
-        - AttributeName: rating
-          AttributeType: N
       KeySchema:
         - AttributeName: userid
           KeyType: HASH
-        - AttributeName: rating
-          KeyType: RANGE
       TableName: Skills
 
 Outputs:
@@ -56,11 +52,11 @@ Outputs:
   # Find out more about other implicit resources you can reference within SAM
   # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
   DynamoDbApi:
-    Description: "API Gateway endpoint URL for Prod stage for Hello World function"
+    Description: "API Gateway endpoint URL for Prod stage for Skills API function"
     Value: !Sub "https://${ApiResource}.execute-api.${AWS::Region}.amazonaws.com/Prod/Skills/"
   DynamoDbFunction:
-    Description: "Hello World Lambda Function ARN"
+    Description: "Skills API Lambda Function ARN"
     Value: !GetAtt DynamoDbFunction.Arn
   DynamoDbFunctionIamRole:
-    Description: "Implicit IAM Role created for Hello World function"
+    Description: "Implicit IAM Role created for Skills API function"
     Value: !GetAtt DynamoDbFunctionRole.Arn
