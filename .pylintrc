@@ -1,0 +1,5 @@
+[MASTER]
+init-hook='import sys; import os; sys.path.append(os.path.abspath("dynamodb"))'
+
+[MESSAGE CONTROL]
+disable=unused-argument,wrong-import-position, missing-module-docstring,missing-function-docstring,pointless-string-statement,line-too-long,broad-except,bare-except,too-many-return-statements,too-many-branches

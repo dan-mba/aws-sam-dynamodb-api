@@ -9,10 +9,6 @@ Description: >
 Globals:
   Function:
     Runtime: python3.8
-    Environment:
-      Variables:
-        TABLE_NAME:
-          Ref: SkillsTable    
 
 Resources:
   ApiResource:
@@ -29,11 +25,23 @@ Resources:
         - DynamoDBCrudPolicy:
             TableName: !Ref SkillsTable
       Events:
-        DynamoDb:
+        GetOneRating:
+          Type: Api
+          Properties:
+            Path: /Skills/{userid}/{rating}
+            Method: get
+            RestApiId: !Ref ApiResource
+        GetAllRatings:
           Type: Api
           Properties:
             Path: /Skills/{userid}
             Method: get
+            RestApiId: !Ref ApiResource
+        AllOtherMethods:
+          Type: Api
+          Properties:
+            Path: /Skills
+            Method: any
             RestApiId: !Ref ApiResource
 
   SkillsTable:
@@ -42,9 +50,16 @@ Resources:
       AttributeDefinitions:
         - AttributeName: userid
           AttributeType: S
+        - AttributeName: rating
+          AttributeType: N
       KeySchema:
         - AttributeName: userid
           KeyType: HASH
+        - AttributeName: rating
+          KeyType: RANGE
+      ProvisionedThroughput:
+        ReadCapacityUnits: 1
+        WriteCapacityUnits: 1
       TableName: Skills
 
 Outputs:
