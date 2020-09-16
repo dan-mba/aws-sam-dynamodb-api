@@ -1,9 +1,14 @@
 import boto3
 from botocore.exceptions import ClientError
 import json
-from lib.response import respond
 
-def delete(table, event):
+sys.path.append(os.path.join(os.path.dirname(__file__)))
+from lib.response import respond
+from lib.table import setup_table
+
+table = setup_table()
+
+def lambda_handler(event, context):
     if not event.get('body'):
         return respond({"message": "DELETE request requires parameters in the body"})
 

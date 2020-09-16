@@ -1,7 +1,12 @@
 import boto3
 from botocore.exceptions import ClientError
 import json
+
+sys.path.append(os.path.join(os.path.dirname(__file__)))
 from lib.response import respond
+from lib.table import setup_table
+
+table = setup_table()
 
 """
 DynamoDB return Numbers as Decimal
@@ -13,7 +18,9 @@ def convert_item_json(db_item):
     db_item['skills'] = list(db_item['skills'])
 
 
-def get(table, event):
+
+
+def lambda_handler(event, context):
     if (not event.get('pathParameters')) or (not event['pathParameters'].get('userid')):
         return respond({"message": "GET request requires userid path parameter"})
 

@@ -12,37 +12,78 @@ Globals:
 
 Resources:
   ApiResource:
-    Type: AWS::Serverless::Api
+    Type: AWS::Serverless::HttpApi
     Properties:
       StageName: Prod
 
-  DynamoDbFunction:
-    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+  GetFunction:
+    Type: AWS::Serverless::Function
     Properties:
       CodeUri: dynamodb/
-      Handler: app.lambda_handler
+      Handler: get.lambda_handler
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref SkillsTable
+      Events:
+        GetOneRating:
+          Type: HttpApi
+          Properties:
+            Path: /Skills/{userid}/{rating}
+            Method: get
+            ApiId: !Ref ApiResource
+        GetAllRatings:
+          Type: HttpApi
+          Properties:
+            Path: /Skills/{userid}
+            Method: get
+            ApiId: !Ref ApiResource
+  PutFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: dynamodb/
+      Handler: put.lambda_handler
+      Policies:
+        - DynamoDBWritePolicy:
+            TableName: !Ref SkillsTable
+      Events:
+        AllOtherMethods:
+          Type: HttpApi
+          Properties:
+            Path: /Skills
+            Method: put
+            ApiId: !Ref ApiResource
+  
+  PostFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: dynamodb/
+      Handler: post.lambda_handler
+      Policies:
+        - DynamoDBWritePolicy:
+            TableName: !Ref SkillsTable
+      Events:
+        AllOtherMethods:
+          Type: HttpApi
+          Properties:
+            Path: /Skills
+            Method: post
+            ApiId: !Ref ApiResource
+
+  DeleteFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: dynamodb/
+      Handler: delete.lambda_handler
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref SkillsTable
       Events:
-        GetOneRating:
-          Type: Api
-          Properties:
-            Path: /Skills/{userid}/{rating}
-            Method: get
-            RestApiId: !Ref ApiResource
-        GetAllRatings:
-          Type: Api
-          Properties:
-            Path: /Skills/{userid}
-            Method: get
-            RestApiId: !Ref ApiResource
         AllOtherMethods:
-          Type: Api
+          Type: HttpApi
           Properties:
             Path: /Skills
-            Method: any
-            RestApiId: !Ref ApiResource
+            Method: delete
+            ApiId: !Ref ApiResource
 
   SkillsTable:
     Type: 'AWS::DynamoDB::Table'
