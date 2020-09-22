@@ -1,6 +1,6 @@
 import boto3
 from botocore.exceptions import ClientError
-import json
+import json, sys, os
 
 sys.path.append(os.path.join(os.path.dirname(__file__)))
 from lib.response import respond
@@ -43,11 +43,11 @@ def lambda_handler(event, context):
         try:
             rating = int(rating)
         except ValueError:
-            return respond({'message': 'oldrating is not an integer', 'rating': rating})
+            return respond({'message': 'rating is not an integer', 'rating': rating})
 
 
         if rating not in range(1, 6):
-            return respond({'message': 'oldrating is not between 1 and 5', 'rating': rating})
+            return respond({'message': 'rating is not between 1 and 5', 'rating': rating})
 
         try:
             table.update_item(Key={'userid': userid, 'rating': rating},
