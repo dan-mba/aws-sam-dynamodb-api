@@ -20,7 +20,7 @@ def lambda_handler(event, context):
             "body": event['body']
         })
 
-    userid = body.get('userid')
+    userid = event['requestContext']['authorizer']['jwt']['claims']['username']
     rating = body.get('rating')
     skill = body.get('skill')
     confirm = body.get('confirm')
@@ -34,7 +34,6 @@ def lambda_handler(event, context):
         if (not rating) or (not skill):
             return respond({
                 'message': 'DELETE missing required parameter',
-                'userid': userid,
                 'rating': rating,
                 'skill': skill,
                 'confirm': confirm
@@ -64,7 +63,7 @@ def lambda_handler(event, context):
 
     if confirm != "YES":
         return respond({
-            'message': 'removing all skills for a userid requires confirm set to YES'
+            'message': 'removing all skills for a user requires confirm set to YES'
         })
 
     try:
@@ -75,10 +74,7 @@ def lambda_handler(event, context):
             for item in query_results['Items']:
                 batch.delete_item(Key={'userid': userid, 'rating': item['rating']})
 
-        response = {
-            'message': 'deleted all skills for this userid',
-            'userid': userid
-        }
+        response = {'message': 'deleted all skills for this user'}
 
     except ClientError as error:
         return respond(error.response['Error'])

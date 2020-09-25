@@ -1,23 +1,21 @@
 # AWS SAM DynamoDB Skills API
 
 An API to store skills & ratings for multiple users in a DynamoDB table.<br>
-The userid is a paramater in this simple implementation.<br>
-In production it would be obtained from the authentication provider (Cognito).
+All routes are protected by Cognito & require the JWT in the Authorization header<br>
+The username from the JWT is stored with each item in the table<br> 
 
 ## Parameter Definitions
-userid: String representing a specific user<br>
 rating: Integer (1-5) representing expertise level<br>
 skill: String representing a specific skill<br>
 
 ## API Definition
 
-GET /Skills/{userid} - Get all skills for specified userid<br>
-GET /Skills/{userid}/{rating} = Get skill with sepcified rating for specifeid userid<br>
+GET /Skills - Get all skills<br>
+GET /Skills/{rating} = Get skill with sepcified rating<br>
 
 POST /Skills - Add skill
 ```json
 body: {
-  "userid": "userid String",
   "rating": "rating Integer",
   "skill": "skill String"
 }
@@ -26,7 +24,6 @@ body: {
 PUT /Skills - Update skill rating
 ```json
 body: {
-  "userid": "userid String",
   "oldrating": "current rating Integer",
   "newrating": "new rating Integer",
   "skill": "skill String"
@@ -36,16 +33,14 @@ body: {
 DELETE /Skills - Delete selected skill
 ```json
 body: {
-  "userid": "userid String",
   "rating": "rating Integer",
   "skill": "skill String"
 }
 ```
 
-DELETE /Skills - Delete all skills for sepecifed userid
+DELETE /Skills - Delete all skills
 ```json
 body: {
-  "userid": "userid String",
   "confirm": "YES"
 }
 ```

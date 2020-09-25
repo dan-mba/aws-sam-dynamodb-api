@@ -20,7 +20,7 @@ def lambda_handler(event, context):
         })
 
 
-    userid = body.get('userid')
+    userid = event['requestContext']['authorizer']['jwt']['claims']['username']
     oldrating = body.get('oldrating')
     newrating = body.get('newrating')
     skill = body.get('skill')
@@ -28,7 +28,6 @@ def lambda_handler(event, context):
     if (not userid) or (not oldrating) or (not newrating) or (not skill):
         return respond({
             'message': 'POST missing required parameter',
-            'userid': userid,
             'oldrating': oldrating,
             'newrating': newrating,
             'skill': skill

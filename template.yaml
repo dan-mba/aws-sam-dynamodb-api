@@ -103,13 +103,13 @@ Resources:
         GetOne:
           Type: HttpApi
           Properties:
-            Path: /Skills/{userid}/{rating}
+            Path: /Skills/{rating}
             Method: get
             ApiId: !Ref ApiResource
         GetAll:
           Type: HttpApi
           Properties:
-            Path: /Skills/{userid}
+            Path: /Skills
             Method: get
             ApiId: !Ref ApiResource
   PutFunction:
