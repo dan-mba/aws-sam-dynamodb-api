@@ -1,7 +1,12 @@
 import boto3
 from botocore.exceptions import ClientError
-import json
+import json, sys, os
+
+sys.path.append(os.path.join(os.path.dirname(__file__)))
 from lib.response import respond
+from lib.table import setup_table
+
+table = setup_table()
 
 """
 DynamoDB return Numbers as Decimal
@@ -10,17 +15,13 @@ Convert skills Set to List for JSON Serialization
 """
 def convert_item_json(db_item):
     db_item['rating'] = int(str(db_item['rating']))
-    db_item['skills'] = list(db_item['skills'])
+    db_item['skills'] = list(db_item.get('skills',[]))
+    db_item.pop('userid')
 
 
-def get(table, event):
-    if (not event.get('pathParameters')) or (not event['pathParameters'].get('userid')):
-        return respond({"message": "GET request requires userid path parameter"})
-
-    print("Get parameters:" + json.dumps(event['pathParameters']))
-
-    userid = event['pathParameters']['userid']
-    rating = event['pathParameters'].get('rating')
+def lambda_handler(event, context):
+    userid = event['requestContext']['authorizer']['jwt']['claims']['username']
+    rating = event.get('pathParameters', {}).get('rating')
 
 
     if rating:
@@ -35,9 +36,9 @@ def get(table, event):
         try:
             response = table.get_item(Key={"userid": userid, "rating": rating})
             response = response.get('Item')
+
             if not response:
                 response = {
-                    "userid": userid,
                     "rating": rating,
                     "skills": []
                 }
@@ -51,8 +52,9 @@ def get(table, event):
 
     else:
         try:
-            expression = boto3.dynamodb.conditions.Key("userid").eq(userid)
-            response = table.query(KeyConditionExpression=expression)
+            key_expression = boto3.dynamodb.conditions.Key("userid").eq(userid)
+            filter_expression = boto3.dynamodb.conditions.Attr("skills").size().gt(0)
+            response = table.query(KeyConditionExpression=key_expression, FilterExpression=filter_expression)
             response = response['Items']
             for item in response:
                 convert_item_json(item)

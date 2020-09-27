@@ -1,8 +1,13 @@
 from botocore.exceptions import ClientError
-import json
-from lib.response import respond
+import json, sys, os
 
-def post(table, event):
+sys.path.append(os.path.join(os.path.dirname(__file__)))
+from lib.response import respond
+from lib.table import setup_table
+
+table = setup_table()
+
+def lambda_handler(event, context):
     if not event.get('body'):
         return respond({"message": "POST request requires parameters in the body"})
 
@@ -14,14 +19,13 @@ def post(table, event):
             "body": event['body']
         })
 
-    userid = body.get('userid')
+    userid = event['requestContext']['authorizer']['jwt']['claims']['username'];
     rating = body.get('rating')
     skill = body.get('skill')
 
-    if (not userid) or (not rating) or (not skill):
+    if (not rating) or (not skill):
         return respond({
             'message': 'POST missing required parameter',
-            'userid': userid,
             'rating': rating,
             'skill': skill
         })

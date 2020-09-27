@@ -5,44 +5,157 @@ Description: >
 
   SAM Template for Skills API
 
+Parameters:
+  AppName:
+    Type: String
+    Description: Name of the application
+    Default: "dynamodb-skills"
+  ClientDomains:
+    Type: CommaDelimitedList
+    Description: Array of domains allowed to use this UserPool
+    Default: "http://localhost:8080,https://dan-mba.github.io"
+
 # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
 Globals:
   Function:
     Runtime: python3.8
+    CodeUri: dynamodb/
 
 Resources:
-  ApiResource:
-    Type: AWS::Serverless::Api
-    Properties:
-      StageName: Prod
+  UserPool:
+    Type: AWS::Cognito::UserPool 
+    Properties: 
+      UserPoolName: !Sub ${AppName}-UserPool 
+      Policies: 
+        PasswordPolicy: 
+          MinimumLength: 8
+      AutoVerifiedAttributes:
+        - email
+      UsernameAttributes: 
+        - email
+      Schema: 
+        - AttributeDataType: String 
+          Name: email 
+          Required: false
 
-  DynamoDbFunction:
-    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+  UserPoolClient:
+    Type: AWS::Cognito::UserPoolClient 
+    Properties: 
+      UserPoolId: !Ref UserPool 
+      ClientName: !Sub ${AppName}-UserPoolClient 
+      GenerateSecret: false # set to false for web clients
+      SupportedIdentityProviders:
+        - COGNITO
+      CallbackURLs: !Ref ClientDomains
+      LogoutURLs: !Ref ClientDomains
+      AllowedOAuthFlowsUserPoolClient: true
+      AllowedOAuthFlows:
+        - code
+        - implicit #for testing with postman
+      AllowedOAuthScopes:
+        - email
+        - openid
+        - profile
+
+  UserPoolDomain:
+    Type: AWS::Cognito::UserPoolDomain
+    Properties: 
+      Domain: !Sub ${AppName}-${AWS::AccountId}
+      UserPoolId: !Ref UserPool
+
+  ApiResource:
+    Type: AWS::Serverless::HttpApi
     Properties:
-      CodeUri: dynamodb/
-      Handler: app.lambda_handler
+      Auth:
+        DefaultAuthorizer: GeneralAuth
+        Authorizers:
+          GeneralAuth:
+            AuthorizationScopes:
+              - email
+            IdentitySource: "$request.header.Authorization"
+            JwtConfiguration:
+              issuer: !Sub https://cognito-idp.${AWS::Region}.amazonaws.com/${UserPool}
+              audience:
+                - !Ref UserPoolClient
+      CorsConfiguration:
+        AllowCredentials: true
+        AllowHeaders:
+          - Authorization
+          - "*"
+        AllowMethods:
+          - get
+          - put
+          - post
+          - delete
+          - options
+        AllowOrigins:
+          - http://localhost:8080
+          - https://dan-mba.github.io
+
+  GetFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: get.lambda_handler
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref SkillsTable
+      Events:
+        GetOne:
+          Type: HttpApi
+          Properties:
+            Path: /Skills/{rating}
+            Method: get
+            ApiId: !Ref ApiResource
+        GetAll:
+          Type: HttpApi
+          Properties:
+            Path: /Skills
+            Method: get
+            ApiId: !Ref ApiResource
+  PutFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: put.lambda_handler
+      Policies:
+        - DynamoDBWritePolicy:
+            TableName: !Ref SkillsTable
+      Events:
+        Put:
+          Type: HttpApi
+          Properties:
+            Path: /Skills
+            Method: put
+            ApiId: !Ref ApiResource
+  
+  PostFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: post.lambda_handler
+      Policies:
+        - DynamoDBWritePolicy:
+            TableName: !Ref SkillsTable
+      Events:
+        Post:
+          Type: HttpApi
+          Properties:
+            Path: /Skills
+            Method: post
+            ApiId: !Ref ApiResource
+
+  DeleteFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: delete.lambda_handler
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref SkillsTable
       Events:
-        GetOneRating:
-          Type: Api
-          Properties:
-            Path: /Skills/{userid}/{rating}
-            Method: get
-            RestApiId: !Ref ApiResource
-        GetAllRatings:
-          Type: Api
-          Properties:
-            Path: /Skills/{userid}
-            Method: get
-            RestApiId: !Ref ApiResource
-        AllOtherMethods:
-          Type: Api
+        Delete:
+          Type: HttpApi
           Properties:
             Path: /Skills
-            Method: any
-            RestApiId: !Ref ApiResource
+            Method: delete
+            ApiId: !Ref ApiResource
 
   SkillsTable:
     Type: 'AWS::DynamoDB::Table'
@@ -63,15 +176,6 @@ Resources:
       TableName: Skills
 
 Outputs:
-  # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
-  # Find out more about other implicit resources you can reference within SAM
-  # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
   DynamoDbApi:
     Description: "API Gateway endpoint URL for Prod stage for Skills API function"
-    Value: !Sub "https://${ApiResource}.execute-api.${AWS::Region}.amazonaws.com/Prod/Skills/"
-  DynamoDbFunction:
-    Description: "Skills API Lambda Function ARN"
-    Value: !GetAtt DynamoDbFunction.Arn
-  DynamoDbFunctionIamRole:
-    Description: "Implicit IAM Role created for Skills API function"
-    Value: !GetAtt DynamoDbFunctionRole.Arn
+    Value: !Sub "https://${ApiResource}.execute-api.${AWS::Region}.amazonaws.com/Skills/"

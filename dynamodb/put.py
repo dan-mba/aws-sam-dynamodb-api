@@ -1,8 +1,13 @@
 from botocore.exceptions import ClientError
-import json
-from lib.response import respond
+import json, sys, os
 
-def put(table, event):
+sys.path.append(os.path.join(os.path.dirname(__file__)))
+from lib.response import respond
+from lib.table import setup_table
+
+table = setup_table()
+
+def lambda_handler(event, context):
     if not event.get('body'):
         return respond({"message": "PUT request requires parameters in the body"})
 
@@ -15,7 +20,7 @@ def put(table, event):
         })
 
 
-    userid = body.get('userid')
+    userid = event['requestContext']['authorizer']['jwt']['claims']['username']
     oldrating = body.get('oldrating')
     newrating = body.get('newrating')
     skill = body.get('skill')
@@ -23,7 +28,6 @@ def put(table, event):
     if (not userid) or (not oldrating) or (not newrating) or (not skill):
         return respond({
             'message': 'POST missing required parameter',
-            'userid': userid,
             'oldrating': oldrating,
             'newrating': newrating,
             'skill': skill
