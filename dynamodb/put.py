@@ -1,9 +1,11 @@
+import json
+import sys
+import os
 from botocore.exceptions import ClientError
-import json, sys, os
 
 sys.path.append(os.path.join(os.path.dirname(__file__)))
-from lib.response import respond
-from lib.table import setup_table
+from mylib.response import respond
+from mylib.table import setup_table
 
 table = setup_table()
 
