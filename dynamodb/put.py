@@ -8,7 +8,6 @@ from mylib.response import respond
 from mylib.table import setup_table
 
 table = setup_table()
-
 def lambda_handler(event, context):
     if not event.get('body'):
         return respond({"message": "PUT request requires parameters in the body"})
@@ -20,7 +19,6 @@ def lambda_handler(event, context):
             "message": "PUT request requires JSON parameters in the body",
             "body": event['body']
         })
-
 
     userid = event['requestContext']['authorizer']['jwt']['claims']['username']
     oldrating = body.get('oldrating')

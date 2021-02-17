@@ -14,6 +14,8 @@ DynamoDB return Numbers as Decimal
 Convert rating to int for JSON Serialization
 Convert skills Set to List for JSON Serialization
 """
+
+
 def convert_item_json(db_item):
     db_item['rating'] = int(str(db_item['rating']))
     db_item['skills'] = list(db_item.get('skills',[]))
@@ -23,7 +25,6 @@ def convert_item_json(db_item):
 def lambda_handler(event, context):
     userid = event['requestContext']['authorizer']['jwt']['claims']['username']
     rating = event.get('pathParameters', {}).get('rating')
-
 
     if rating:
         try:
@@ -55,7 +56,8 @@ def lambda_handler(event, context):
         try:
             key_expression = boto3.dynamodb.conditions.Key("userid").eq(userid)
             filter_expression = boto3.dynamodb.conditions.Attr("skills").size().gt(0)
-            response = table.query(KeyConditionExpression=key_expression, FilterExpression=filter_expression)
+            response = table.query(
+                KeyConditionExpression=key_expression, FilterExpression=filter_expression)
             response = response['Items']
             for item in response:
                 convert_item_json(item)

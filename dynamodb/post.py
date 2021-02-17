@@ -9,6 +9,7 @@ from mylib.table import setup_table
 
 table = setup_table()
 
+
 def lambda_handler(event, context):
     if not event.get('body'):
         return respond({"message": "POST request requires parameters in the body"})

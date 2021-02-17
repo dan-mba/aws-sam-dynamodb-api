@@ -1,5 +1,6 @@
 import json
 
+
 def respond(err, res=None):
     if err:
         body = json.dumps(err)
