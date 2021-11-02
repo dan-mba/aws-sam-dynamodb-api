@@ -41,10 +41,10 @@ def lambda_handler(event, context):
     if rating not in range(1, 6):
         return respond({'message': 'rating is not between 1 and 5', 'rating': rating})
 
+    sort_key = f'{rating}#{skill}'
+
     try:
-        table.update_item(Key={'userid': userid, 'rating': rating},
-                          UpdateExpression='ADD skills :skill',
-                          ExpressionAttributeValues={':skill': set([skill])})
+        table.put_item(Key={'PK': userid, 'SK': sort_key})
         response = {'message': 'Skill added'}
 
     except ClientError as error:

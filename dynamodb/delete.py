@@ -1,10 +1,10 @@
-import json
-import sys
-import os
-import boto3
+from json import loads
+from sys import path
+from os.path import join, dirname
+from boto3.dynamodb.conditions import Key
 from botocore.exceptions import ClientError
 
-sys.path.append(os.path.join(os.path.dirname(__file__)))
+path.append(join(dirname(__file__)))
 from mylib.response import respond
 from mylib.table import setup_table
 
@@ -16,7 +16,7 @@ def lambda_handler(event, context):
         return respond({"message": "DELETE request requires parameters in the body"})
 
     try:
-        body = json.loads(event['body'])
+        body = loads(event['body'])
     except:
         return respond({
             "message": "DELETE request requires JSON parameters in the body",
@@ -50,11 +50,10 @@ def lambda_handler(event, context):
         if rating not in range(1, 6):
             return respond({'message': 'rating is not between 1 and 5', 'rating': rating})
 
+        sort_key = f'{rating}#{skill}'
+
         try:
-            table.update_item(
-                Key={'userid': userid, 'rating': rating},
-                UpdateExpression='DELETE skills :skill',
-                ExpressionAttributeValues={':skill': set([skill])})
+            table.delete_item(Key={'PK': userid, 'SK': sort_key})
             response = {'message': 'Skill deleted'}
 
         except ClientError as error:
@@ -70,13 +69,13 @@ def lambda_handler(event, context):
         })
 
     try:
-        expression = boto3.dynamodb.conditions.Key("userid").eq(userid)
+        expression = Key('PK').eq(userid)
         query_results = table.query(KeyConditionExpression=expression)
 
         with table.batch_writer() as batch:
             for item in query_results['Items']:
                 batch.delete_item(
-                    Key={'userid': userid, 'rating': item['rating']})
+                    Key={'PK': userid, 'SK': item['SK']})
 
         response = {'message': 'deleted all skills for this user'}
 

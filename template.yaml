@@ -161,14 +161,14 @@ Resources:
     Type: 'AWS::DynamoDB::Table'
     Properties:
       AttributeDefinitions:
-        - AttributeName: userid
+        - AttributeName: PK
           AttributeType: S
-        - AttributeName: rating
-          AttributeType: N
+        - AttributeName: SK
+          AttributeType: S
       KeySchema:
-        - AttributeName: userid
+        - AttributeName: PK
           KeyType: HASH
-        - AttributeName: rating
+        - AttributeName: SK
           KeyType: RANGE
       ProvisionedThroughput:
         ReadCapacityUnits: 1
