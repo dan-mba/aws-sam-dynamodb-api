@@ -44,7 +44,7 @@ def lambda_handler(event, context):
     sort_key = f'{rating}#{skill}'
 
     try:
-        table.put_item(Key={'PK': userid, 'SK': sort_key})
+        table.put_item(Item={'PK': userid, 'SK': sort_key})
         response = {'message': 'Skill added'}
 
     except ClientError as error:

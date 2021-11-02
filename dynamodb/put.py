@@ -62,7 +62,7 @@ def lambda_handler(event, context):
             return respond({'message': 'Skill does not exist with this rating'})
 
         table.delete_item(Key={'PK': userid, 'SK': sk_old})
-        table.put_item(Key={'PK': userid, 'SK': sk_new})
+        table.put_item(Item={'PK': userid, 'SK': sk_new})
         response = {'message': 'Skill updated'}
 
     except ClientError as error:
