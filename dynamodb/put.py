@@ -12,14 +12,14 @@ from mylib.table import setup_table
 table = setup_table()
 def lambda_handler(event, context):
     if not event.get('body'):
-        return respond({"message": "PUT request requires parameters in the body"})
+        return respond({'message': 'PUT request requires parameters in the body'})
 
     try:
         body = loads(event['body'])
     except:
         return respond({
-            "message": "PUT request requires JSON parameters in the body",
-            "body": event['body']
+            'message': 'PUT request requires JSON parameters in the body',
+            'body': event['body']
         })
 
     userid = event['requestContext']['authorizer']['jwt']['claims']['username']

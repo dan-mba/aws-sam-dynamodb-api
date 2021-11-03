@@ -13,14 +13,14 @@ table = setup_table()
 
 def lambda_handler(event, context):
     if not event.get('body'):
-        return respond({"message": "DELETE request requires parameters in the body"})
+        return respond({'message': 'DELETE request requires parameters in the body'})
 
     try:
         body = loads(event['body'])
     except:
         return respond({
-            "message": "DELETE request requires JSON parameters in the body",
-            "body": event['body']
+            'message': 'DELETE request requires JSON parameters in the body',
+            'body': event['body']
         })
 
     userid = event['requestContext']['authorizer']['jwt']['claims']['username']
@@ -63,7 +63,7 @@ def lambda_handler(event, context):
 
         return respond(None, response)
 
-    if confirm != "YES":
+    if confirm != 'YES':
         return respond({
             'message': 'removing all skills for a user requires confirm set to YES'
         })

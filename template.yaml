@@ -114,12 +114,13 @@ Resources:
             Path: /Skills
             Method: get
             ApiId: !Ref ApiResource
+
   PutFunction:
     Type: AWS::Serverless::Function
     Properties:
       Handler: put.lambda_handler
       Policies:
-        - DynamoDBWritePolicy:
+        - DynamoDBCrudPolicy:
             TableName: !Ref SkillsTable
       Events:
         Put:
