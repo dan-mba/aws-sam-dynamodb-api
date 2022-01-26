@@ -18,7 +18,9 @@ Parameters:
 # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
 Globals:
   Function:
-    Runtime: python3.8
+    Runtime: python3.9
+    Architectures:
+      - arm64
     CodeUri: dynamodb/
 
 Resources:
@@ -112,12 +114,13 @@ Resources:
             Path: /Skills
             Method: get
             ApiId: !Ref ApiResource
+
   PutFunction:
     Type: AWS::Serverless::Function
     Properties:
       Handler: put.lambda_handler
       Policies:
-        - DynamoDBWritePolicy:
+        - DynamoDBCrudPolicy:
             TableName: !Ref SkillsTable
       Events:
         Put:
@@ -161,14 +164,14 @@ Resources:
     Type: 'AWS::DynamoDB::Table'
     Properties:
       AttributeDefinitions:
-        - AttributeName: userid
+        - AttributeName: PK
           AttributeType: S
-        - AttributeName: rating
-          AttributeType: N
+        - AttributeName: SK
+          AttributeType: S
       KeySchema:
-        - AttributeName: userid
+        - AttributeName: PK
           KeyType: HASH
-        - AttributeName: rating
+        - AttributeName: SK
           KeyType: RANGE
       ProvisionedThroughput:
         ReadCapacityUnits: 1

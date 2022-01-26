@@ -1,11 +1,11 @@
-import json
+from json import dumps
 
 
 def respond(err, res=None):
     if err:
-        body = json.dumps(err)
+        body = dumps(err)
     else:
-        body = json.dumps(res)
+        body = dumps(res)
 
     return {
         'statusCode': '400' if err else '200',

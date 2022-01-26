@@ -1,23 +1,25 @@
-import json
-import sys
-import os
+from json import loads
+from sys import path
+from os.path import join, dirname
+from functools import reduce
+from boto3.dynamodb.conditions import Key, And
 from botocore.exceptions import ClientError
 
-sys.path.append(os.path.join(os.path.dirname(__file__)))
+path.append(join(dirname(__file__)))
 from mylib.response import respond
 from mylib.table import setup_table
 
 table = setup_table()
 def lambda_handler(event, context):
     if not event.get('body'):
-        return respond({"message": "PUT request requires parameters in the body"})
+        return respond({'message': 'PUT request requires parameters in the body'})
 
     try:
-        body = json.loads(event['body'])
+        body = loads(event['body'])
     except:
         return respond({
-            "message": "PUT request requires JSON parameters in the body",
-            "body": event['body']
+            'message': 'PUT request requires JSON parameters in the body',
+            'body': event['body']
         })
 
     userid = event['requestContext']['authorizer']['jwt']['claims']['username']
@@ -49,13 +51,18 @@ def lambda_handler(event, context):
     if newrating not in range(1, 6):
         return respond({'message': 'newrating is not between 1 and 5', 'newrating': newrating})
 
+    sk_old = f'{oldrating}#{skill}'
+    sk_new = f'{newrating}#{skill}'
+    keycondition = reduce(And, [Key('PK').eq(userid), Key('SK').eq(sk_old)])
+
     try:
-        table.update_item(Key={'userid': userid, 'rating': oldrating},
-                          UpdateExpression='DELETE skills :skill',
-                          ExpressionAttributeValues={':skill': set([skill])})
-        table.update_item(Key={'userid': userid, 'rating': newrating},
-                          UpdateExpression='ADD skills :skill',
-                          ExpressionAttributeValues={':skill': set([skill])})
+        response = table.query(KeyConditionExpression=keycondition)
+        response = response['Items']
+        if len(response) == 0:
+            return respond({'message': 'Skill does not exist with this rating'})
+
+        table.delete_item(Key={'PK': userid, 'SK': sk_old})
+        table.put_item(Item={'PK': userid, 'SK': sk_new})
         response = {'message': 'Skill updated'}
 
     except ClientError as error:

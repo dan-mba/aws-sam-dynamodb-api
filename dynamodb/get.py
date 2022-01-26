@@ -1,9 +1,11 @@
-import sys
-import os
-import boto3
+from sys import path
+from os.path import dirname, join
+from functools import reduce
+from collections import defaultdict
+from boto3.dynamodb.conditions import Key, And
 from botocore.exceptions import ClientError
 
-sys.path.append(os.path.join(os.path.dirname(__file__)))
+path.append(join(dirname(__file__)))
 from mylib.response import respond
 from mylib.table import setup_table
 
@@ -14,12 +16,6 @@ DynamoDB return Numbers as Decimal
 Convert rating to int for JSON Serialization
 Convert skills Set to List for JSON Serialization
 """
-
-
-def convert_item_json(db_item):
-    db_item['rating'] = int(str(db_item['rating']))
-    db_item['skills'] = list(db_item.get('skills',[]))
-    db_item.pop('userid')
 
 
 def lambda_handler(event, context):
@@ -35,17 +31,20 @@ def lambda_handler(event, context):
         if rating not in range(1, 6):
             return respond({'message': 'rating is not between 1 and 5', 'rating': rating})
 
-        try:
-            response = table.get_item(Key={"userid": userid, "rating": rating})
-            response = response.get('Item')
+        expression = reduce(And, [Key('PK').eq(userid), Key('SK').begins_with(f'{rating}#')])
 
-            if not response:
-                response = {
-                    "rating": rating,
-                    "skills": []
-                }
-            else:
-                convert_item_json(response)
+        try:
+            items = table.query(KeyConditionExpression=expression)
+            items = items['Items']
+
+            skills = []
+            if len(items) > 0:
+                for item in items:
+                    skills.append(item['SK'][2:])
+
+
+            response = {}
+            response[rating] = skills
 
         except ClientError as error:
             return respond(error.response['Error'])
@@ -54,13 +53,16 @@ def lambda_handler(event, context):
 
     else:
         try:
-            key_expression = boto3.dynamodb.conditions.Key("userid").eq(userid)
-            filter_expression = boto3.dynamodb.conditions.Attr("skills").size().gt(0)
-            response = table.query(
-                KeyConditionExpression=key_expression, FilterExpression=filter_expression)
-            response = response['Items']
-            for item in response:
-                convert_item_json(item)
+            key_expression = Key('PK').eq(userid)
+            items = table.query(KeyConditionExpression=key_expression)
+            items = items['Items']
+
+            response = defaultdict(list)
+            for item in items:
+                rating = item['SK'][0]
+                skill = item['SK'][2:]
+                response[rating].append(skill)
+            response = dict(response)
 
         except ClientError as error:
             return respond(error.response['Error'])

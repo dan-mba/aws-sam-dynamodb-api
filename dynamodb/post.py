@@ -12,14 +12,14 @@ table = setup_table()
 
 def lambda_handler(event, context):
     if not event.get('body'):
-        return respond({"message": "POST request requires parameters in the body"})
+        return respond({'message': 'POST request requires parameters in the body'})
 
     try:
         body = json.loads(event['body'])
     except:
         return respond({
-            "message": "POST request requires JSON parameters in the body",
-            "body": event['body']
+            'message': 'POST request requires JSON parameters in the body',
+            'body': event['body']
         })
 
     userid = event['requestContext']['authorizer']['jwt']['claims']['username']
@@ -41,10 +41,10 @@ def lambda_handler(event, context):
     if rating not in range(1, 6):
         return respond({'message': 'rating is not between 1 and 5', 'rating': rating})
 
+    sort_key = f'{rating}#{skill}'
+
     try:
-        table.update_item(Key={'userid': userid, 'rating': rating},
-                          UpdateExpression='ADD skills :skill',
-                          ExpressionAttributeValues={':skill': set([skill])})
+        table.put_item(Item={'PK': userid, 'SK': sort_key})
         response = {'message': 'Skill added'}
 
     except ClientError as error:
