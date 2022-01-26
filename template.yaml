@@ -182,3 +182,15 @@ Outputs:
   DynamoDbApi:
     Description: "API Gateway endpoint URL for Prod stage for Skills API function"
     Value: !Sub "https://${ApiResource}.execute-api.${AWS::Region}.amazonaws.com/Skills/"
+
+  UserPoolId:
+    Description: "User pool ID"
+    Value: !Ref UserPool
+
+  UserPoolClientId:
+    Description: "Application client ID"
+    Value: !Ref UserPoolClient
+
+  AuthUrl:
+    Description: "URL used for authentication"
+    Value: !Sub https://${UserPoolDomain}.auth.${AWS::Region}.amazoncognito.com
