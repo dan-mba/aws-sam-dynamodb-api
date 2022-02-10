@@ -83,7 +83,7 @@ Resources:
         AllowCredentials: true
         AllowHeaders:
           - Authorization
-          - "*"
+          - Content-Type
         AllowMethods:
           - get
           - put
@@ -181,7 +181,7 @@ Resources:
 Outputs:
   DynamoDbApi:
     Description: "API Gateway endpoint URL for Prod stage for Skills API function"
-    Value: !Sub "https://${ApiResource}.execute-api.${AWS::Region}.amazonaws.com/Skills/"
+    Value: !Sub "https://${ApiResource}.execute-api.${AWS::Region}.amazonaws.com/Skills"
 
   UserPoolId:
     Description: "User pool ID"
