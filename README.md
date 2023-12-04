@@ -33,8 +33,13 @@ body: {
 DELETE /Skills/{skill_id} - Delete selected skill
 ```js
 //Skill ID is rating & skill separated by the hash character
-skill_id = `${rating}#${skill}`
+//In JavaScript
+skill_id = encodeURIComponent(`${rating}#${skill}`)
 
+```
+```python
+#In Python
+skill_id = urllib.parse.quote(f"{rating}#{skill}")
 ```
 
 DELETE /Skills/ALL_SKILLS - Delete all skills
