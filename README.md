@@ -11,7 +11,7 @@ skill: String representing a specific skill<br>
 ## API Definition
 
 GET /Skills - Get all skills<br>
-GET /Skills/{rating} = Get skill with sepcified rating<br>
+GET /Skills/{rating} = Get skill with specified rating<br>
 
 POST /Skills - Add skill
 ```json
@@ -30,20 +30,15 @@ body: {
 }
 ```
 
-DELETE /Skills - Delete selected skill
-```json
-body: {
-  "rating": "rating Integer",
-  "skill": "skill String"
-}
+DELETE /Skills/{skill_id} - Delete selected skill
+```js
+//Skill ID is rating & skill separated by the hash character
+skill_id = `${rating}#${skill}`
+
 ```
 
-DELETE /Skills - Delete all skills
-```json
-body: {
-  "confirm": "YES"
-}
-```
+DELETE /Skills/ALL_SKILLS - Delete all skills
+
 
 
 ## AWS SAM Resources

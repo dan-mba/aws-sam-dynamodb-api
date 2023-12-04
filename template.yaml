@@ -18,7 +18,7 @@ Parameters:
 # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
 Globals:
   Function:
-    Runtime: python3.9
+    Runtime: python3.11
     Architectures:
       - arm64
     CodeUri: dynamodb/
@@ -156,7 +156,7 @@ Resources:
         Delete:
           Type: HttpApi
           Properties:
-            Path: /Skills
+            Path: /Skills/{name}
             Method: delete
             ApiId: !Ref ApiResource
 

@@ -1,6 +1,7 @@
 from json import loads
 from sys import path
 from os.path import join, dirname
+from urllib.parse import unquote
 from boto3.dynamodb.conditions import Key
 from botocore.exceptions import ClientError
 
@@ -12,49 +13,25 @@ table = setup_table()
 
 
 def lambda_handler(event, context):
-    if not event.get('body'):
-        return respond({'message': 'DELETE request requires parameters in the body'})
-
-    try:
-        body = loads(event['body'])
-    except:
-        return respond({
-            'message': 'DELETE request requires JSON parameters in the body',
-            'body': event['body']
-        })
-
     userid = event['requestContext']['authorizer']['jwt']['claims']['username']
-    rating = body.get('rating')
-    skill = body.get('skill')
-    confirm = body.get('confirm')
+    name = event.get('pathParameters', {}).get('name')
 
     if not userid:
         return respond({
             'message': 'DELETE requires userid parameter'
         })
 
-    if not confirm:
-        if (not rating) or (not skill):
-            return respond({
-                'message': 'DELETE missing required parameter',
-                'rating': rating,
-                'skill': skill,
-                'confirm': confirm
-            })
+    if not name:
+        return respond({
+            'message': 'DELETE missing required parameter'
+        })
+    
+    name = unquote(name);
 
+    if name != 'ALL_SKILLS':
         try:
-            rating = int(rating)
-        except ValueError:
-            return respond({'message': 'rating is not an integer', 'rating': rating})
-
-        if rating not in range(1, 6):
-            return respond({'message': 'rating is not between 1 and 5', 'rating': rating})
-
-        sort_key = f'{rating}#{skill}'
-
-        try:
-            table.delete_item(Key={'PK': userid, 'SK': sort_key})
-            response = {'message': 'Skill deleted'}
+            table.delete_item(Key={'PK': userid, 'SK': name})
+            response = {'message': 'Skill deleted', 'name': name }
 
         except ClientError as error:
             return respond(error.response['Error'])
@@ -62,11 +39,6 @@ def lambda_handler(event, context):
             return respond(str(error))
 
         return respond(None, response)
-
-    if confirm != 'YES':
-        return respond({
-            'message': 'removing all skills for a user requires confirm set to YES'
-        })
 
     try:
         expression = Key('PK').eq(userid)
