@@ -14,7 +14,7 @@ GET /Skills - Get all skills<br>
 GET /Skills/{rating} = Get skill with specified rating<br>
 
 POST /Skills - Add skill
-```json
+```js
 body: {
   "rating": "rating Integer",
   "skill": "skill String"
@@ -22,7 +22,7 @@ body: {
 ```
 
 PUT /Skills - Update skill rating
-```json
+```js
 body: {
   "oldrating": "current rating Integer",
   "newrating": "new rating Integer",
@@ -30,17 +30,7 @@ body: {
 }
 ```
 
-DELETE /Skills/{skill_id} - Delete selected skill
-```js
-//Skill ID is rating & skill separated by the hash character
-//In JavaScript
-skill_id = encodeURIComponent(`${rating}#${skill}`)
-
-```
-```python
-#In Python
-skill_id = urllib.parse.quote(f"{rating}#{skill}")
-```
+DELETE /Skills/{rating}/{skill} - Delete selected skill
 
 DELETE /Skills/ALL_SKILLS - Delete all skills
 

@@ -156,7 +156,7 @@ Resources:
         Delete:
           Type: HttpApi
           Properties:
-            Path: /Skills/{name}
+            Path: /Skills/{name+}
             Method: delete
             ApiId: !Ref ApiResource
 

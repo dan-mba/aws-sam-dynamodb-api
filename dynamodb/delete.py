@@ -29,8 +29,15 @@ def lambda_handler(event, context):
     name = unquote(name);
 
     if name != 'ALL_SKILLS':
+        keys = name.split('/')
+        if len(keys) != 2:
+            return respond({
+                'message': 'DELETE required parameter malformed'
+            })
+        sk = '#'.join(keys)
+
         try:
-            table.delete_item(Key={'PK': userid, 'SK': name})
+            table.delete_item(Key={'PK': userid, 'SK': sk})
             response = {'message': 'Skill deleted', 'name': name }
 
         except ClientError as error:
@@ -39,7 +46,7 @@ def lambda_handler(event, context):
             return respond(str(error))
 
         return respond(None, response)
-
+    
     try:
         expression = Key('PK').eq(userid)
         query_results = table.query(KeyConditionExpression=expression)
