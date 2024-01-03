@@ -29,12 +29,13 @@ def lambda_handler(event, context):
     name = unquote(name);
 
     if name != 'ALL_SKILLS':
-        keys = name.split('/')
-        if len(keys) != 2:
+        name_lst = list(name)
+        if name_lst[1] != '/':
             return respond({
                 'message': 'DELETE required parameter malformed'
             })
-        sk = '#'.join(keys)
+        name_lst[1] = '#'
+        sk = ''.join(name_lst)
 
         try:
             table.delete_item(Key={'PK': userid, 'SK': sk})
